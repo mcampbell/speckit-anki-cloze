@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../lib/anki_cloze"
+
+# T013-T016: CLI implementation
+# Handles ARGV input, stdin input, error handling, and exit codes
+
+HELP_TEXT = <<~HELP
+  Usage: anki-cloze [TEXT]
+
+  Convert text to Anki cloze deletion format.
+  Each word becomes a numbered cloze deletion.
+
+  Arguments:
+    TEXT    Text to convert. If omitted, reads from stdin.
+
+  Options:
+    --help  Show this help message
+
+  Examples:
+    anki-cloze "A fool and his money"
+    echo "Hello world" | anki-cloze
+    anki-cloze < input.txt
+
+  Output:
+    {{c1::A}} {{c2::fool}} {{c3::and}} {{c4::his}} {{c5::money}}
+HELP
+
+begin
+  # T019: Handle --help flag
+  if ARGV.include?("--help") || ARGV.include?("-h")
+    puts HELP_TEXT
+    exit 0
+  end
+
+  # T013: ARGV input takes precedence
+  if ARGV.any?
+    input = ARGV.join(" ")
+  # T014: Fall back to stdin if no arguments
+  elsif !$stdin.tty?
+    input = $stdin.read.chomp
+  else
+    input = ""
+  end
+
+  # Convert and output
+  result = AnkiCloze.convert(input)
+  puts result
+
+  # T016: Exit with code 0 on success
+  exit 0
+rescue StandardError => e
+  # T015: Error handling with stderr output
+  $stderr.puts "Error: #{e.message}"
+  # T016: Exit with code 1 on error
+  exit 1
+end
