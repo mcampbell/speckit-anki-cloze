@@ -1,58 +1,78 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require_relative "../lib/anki_cloze"
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
-# T013-T016: CLI implementation
-# Handles ARGV input, stdin input, error handling, and exit codes
+require "anki_cloze/sentence"
+require "anki_cloze/chunk"
+require "anki_cloze/arrangement"
+require "anki_cloze/cloze_set"
+require "anki_cloze/formatter"
+require "anki_cloze/generator"
 
+# T023-T024: CLI implementation for multi-word cloze generation
 HELP_TEXT = <<~HELP
-  Usage: anki-cloze [TEXT]
+  Usage: anki-cloze [SENTENCE]
 
-  Convert text to Anki cloze deletion format.
-  Each word becomes a numbered cloze deletion.
+  Generate multi-word Anki cloze deletion flashcards from a sentence.
+  Creates all possible N-word cloze deletions for N from 1 to ceil(word_count/2).
 
   Arguments:
-    TEXT    Text to convert. If omitted, reads from stdin.
+    SENTENCE    Sentence to convert. If omitted, reads from stdin.
 
   Options:
-    --help  Show this help message
+    --help      Show this help message
 
   Examples:
-    anki-cloze "A fool and his money"
+    anki-cloze "The quick brown fox"
     echo "Hello world" | anki-cloze
     anki-cloze < input.txt
 
   Output:
-    {{c1::A}} {{c2::fool}} {{c3::and}} {{c4::his}} {{c5::money}}
+    {{c1::The}} quick brown fox
+    The {{c1::quick}} brown fox
+    The quick {{c1::brown}} fox
+    The quick brown {{c1::fox}}
+    {{c1::The quick}} {{c1::brown fox}}
 HELP
 
 begin
-  # T019: Handle --help flag
+  # Handle --help flag
   if ARGV.include?("--help") || ARGV.include?("-h")
     puts HELP_TEXT
     exit 0
   end
 
-  # T013: ARGV input takes precedence
-  if ARGV.any?
-    input = ARGV.join(" ")
-  # T014: Fall back to stdin if no arguments
+  # T023: ARGV input takes precedence, fall back to stdin
+  input = if ARGV.any?
+    ARGV.join(" ")
   elsif !$stdin.tty?
-    input = $stdin.read.chomp
+    $stdin.read.strip
   else
-    input = ""
+    ""
   end
 
-  # Convert and output
-  result = AnkiCloze.convert(input)
-  puts result
+  # T024: Error handling for empty input
+  if input.empty?
+    $stderr.puts "Error: Input sentence cannot be empty"
+    exit 1
+  end
 
-  # T016: Exit with code 0 on success
+  # Generate and output cloze deletions
+  generator = AnkiCloze::Generator.new(input)
+  results = generator.generate
+
+  results.each do |line|
+    puts line
+  end
+
   exit 0
-rescue StandardError => e
-  # T015: Error handling with stderr output
+rescue ArgumentError => e
+  # T024: Handle validation errors
   $stderr.puts "Error: #{e.message}"
-  # T016: Exit with code 1 on error
   exit 1
+rescue StandardError => e
+  # T024: Handle unexpected errors
+  $stderr.puts "Error: #{e.message}"
+  exit 2
 end
