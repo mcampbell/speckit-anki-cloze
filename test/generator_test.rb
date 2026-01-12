@@ -7,11 +7,11 @@ class GeneratorTest < Minitest::Test
   def test_generates_single_word_clozes_for_four_word_sentence
     generator = AnkiCloze::Generator.new("The quick brown fox")
     result = generator.generate
-    
-    # Should produce 4 cloze lines for N=1
-    n1_lines = result.select { |line| line.scan(/\{\{c1::/).count == 1 }
+
+    # Should produce 4 cloze lines for N=1 (single cloze marker per line)
+    n1_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 1 }
     assert_equal 4, n1_lines.count
-    
+
     # Verify each word gets cloze'd
     assert_includes result, "{{c1::The}} quick brown fox"
     assert_includes result, "The {{c1::quick}} brown fox"
@@ -23,13 +23,13 @@ class GeneratorTest < Minitest::Test
   def test_generates_two_word_clozes_for_four_word_sentence
     generator = AnkiCloze::Generator.new("The quick brown fox")
     result = generator.generate
-    
+
     # Should produce 1 arrangement with 2 clozes for N=2
-    n2_lines = result.select { |line| line.scan(/\{\{c1::/).count == 2 }
+    n2_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 2 }
     assert_equal 1, n2_lines.count
-    
-    # Verify the arrangement
-    assert_includes result, "{{c1::The quick}} {{c1::brown fox}}"
+
+    # Verify the arrangement (c1 and c2 for incrementing cloze numbers)
+    assert_includes result, "{{c1::The quick}} {{c2::brown fox}}"
   end
 
   # T014: Test for max_chunk_size calculation
@@ -64,19 +64,18 @@ class GeneratorTest < Minitest::Test
   def test_five_word_sentence_generates_correct_clozes
     generator = AnkiCloze::Generator.new("one two three four five")
     result = generator.generate
-    
+
     # N=1: 5 lines, N=2: 2 lines, N=3: 3 lines = 10 total
     assert_equal 10, result.length
-    
+
     # Count arrangements by number of cloze markers
-    n1_lines = result.select { |line| line.scan(/\{\{c1::/).count == 1 }
-    n2_lines = result.select { |line| line.scan(/\{\{c1::/).count == 2 }
-    n3_lines = result.select { |line| line.scan(/\{\{c1::/).count == 1 && line.include?("three") && line.scan(/\{\{c1::.*?\}\}/).any? { |m| m.include?("three") && (m.include?("two") || m.include?("four")) } }
-    
+    single_cloze_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 1 }
+    double_cloze_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 2 }
+
     # For simplicity, just verify we have single-cloze lines (from N=1 and N=3)
     # and multi-cloze lines (from N=2)
-    assert_operator n1_lines.count, :>=, 5  # At least 5 from N=1, plus N=3 single-chunk
-    assert_equal 2, n2_lines.count # Exactly 2 from N=2
+    assert_operator single_cloze_lines.count, :>=, 5  # At least 5 from N=1, plus N=3 single-chunk
+    assert_equal 2, double_cloze_lines.count # Exactly 2 from N=2
   end
 
   # T027: Test 6-word sentence max_chunk_size

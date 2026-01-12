@@ -80,7 +80,7 @@ Chunk.new(start_index: 0, size: 2, words: ["The", "quick"])
 - All chunks must have same size N
 
 **Methods**:
-- `to_anki_format`: Generates Anki cloze string with {{c1::text}} format
+- `to_anki_format`: Generates Anki cloze string with {{cN::text}} format (incrementing N)
 
 **Example**:
 ```ruby
@@ -91,7 +91,7 @@ arrangement = Arrangement.new([
   Chunk.new(2, 2, ["brown", "fox"])
 ])
 arrangement.to_anki_format
-# => "{{c1::The quick}} {{c1::brown fox}}"
+# => "{{c1::The quick}} {{c2::brown fox}}"
 ```
 
 ---
@@ -184,7 +184,7 @@ ClozeSet N=1: 4 arrangements (one per word)
   - The quick brown {{c1::fox}}
 
 ClozeSet N=2: 1 arrangement
-  - {{c1::The quick}} {{c1::brown fox}}
+  - {{c1::The quick}} {{c2::brown fox}}
 ```
 
 ### Example 2: 5-word sentence
@@ -196,8 +196,8 @@ max_chunk_size = ceil(5/2.0) = 3
 ClozeSet N=1: 5 arrangements
 
 ClozeSet N=2: 2 arrangements
-  - {{c1::one two}} {{c1::three four}} five
-  - one {{c1::two three}} {{c1::four five}}
+  - {{c1::one two}} {{c2::three four}} five
+  - one {{c1::two three}} {{c2::four five}}
 
 ClozeSet N=3: 1 arrangement
   - {{c1::one two three}} four five
@@ -213,7 +213,7 @@ max_chunk_size = 2
 
 # Punctuation preserved within words
 ClozeSet N=2, Arrangement 1:
-  - {{c1::It's a}} {{c1::well-known fact}}
+  - {{c1::It's a}} {{c2::well-known fact}}
 ```
 
 ---

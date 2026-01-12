@@ -21,10 +21,10 @@
 
 **Key Insights**:
 - For N=1 with 4 words: Generate 4 cards (one cloze each)
-- For N=2 with 4 words: Generate 1 card with 2 non-overlapping clozes: {{c1::word1 word2}} {{c1::word3 word4}}
+- For N=2 with 4 words: Generate 1 card with 2 non-overlapping clozes: {{c1::word1 word2}} {{c2::word3 word4}}
 - For N=2 with 5 words: Generate 2 arrangements:
-  - {{c1::word1 word2}} {{c1::word3 word4}} word5
-  - word1 {{c1::word2 word3}} {{c1::word4 word5}}
+  - {{c1::word1 word2}} {{c2::word3 word4}} word5
+  - word1 {{c1::word2 word3}} {{c2::word4 word5}}
 - Pattern: For chunk size N, there are (W - N + 1) possible starting positions for first chunk
 
 ### 2. Ruby Test-First Development with Minitest
@@ -106,16 +106,16 @@ The quick {{c1::brown}} fox
 
 ### 4. Anki Cloze Format Specification
 
-**Decision**: Output format `{{c1::text}}` for all clozes on same line
+**Decision**: Output format uses incrementing `{{cN::text}}` for each cloze on a line
 
 **Rationale**:
 - Anki's cloze deletion format uses `{{cN::text}}` where N is the cloze number
-- Multiple clozes on same line should use same number (c1) so they appear together
+- Multiple clozes on same line use incrementing numbers (c1, c2, c3...) so they are tested separately
 - Each output line represents a different flashcard/arrangement
 - Format is validated by Anki import - must be exact
 
 **Format Rules**:
-1. All clozes on a single line use `{{c1::...}}` 
+1. Clozes on a line use incrementing numbers: `{{c1::...}}`, `{{c2::...}}`, etc.
 2. Preserve exact spacing and punctuation from input
 3. No extra whitespace around `::` or within braces
 4. Words within multi-word cloze separated by original spacing
@@ -123,13 +123,13 @@ The quick {{c1::brown}} fox
 **Example**:
 ```text
 Input: "The quick brown fox"
-Output line: "{{c1::The quick}} {{c1::brown fox}}"
-NOT: "{{ c1 :: The quick }} {{ c1 :: brown fox }}"  # Wrong spacing
+Output line: "{{c1::The quick}} {{c2::brown fox}}"
+NOT: "{{ c1 :: The quick }} {{ c2 :: brown fox }}"  # Wrong spacing
 NOT: "{{c1::The  quick}}"                            # Wrong internal spacing
 ```
 
 **Alternatives Considered**:
-1. Sequential numbering (c1, c2, c3) - Rejected: Creates separate cards instead of grouped testing
+1. Same numbering (c1, c1, c1) - Rejected: All clozes appear together, not tested separately
 2. JSON output - Rejected: Not requested, adds complexity
 3. Custom format - Rejected: Must match Anki's exact format for import
 

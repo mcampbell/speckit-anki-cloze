@@ -24,7 +24,7 @@ A user wants to create flashcards that test understanding at multiple levels - f
 
 **Acceptance Scenarios**:
 
-1. **Given** a sentence "The quick brown fox" (4 words), **When** system generates cloze cards, **Then** output contains N=1 clozes ({{c1::The}} quick brown fox, etc.), N=2 clozes ({{c1::The quick}} {{c1::brown fox}}, etc.)
+1. **Given** a sentence "The quick brown fox" (4 words), **When** system generates cloze cards, **Then** output contains N=1 clozes ({{c1::The}} quick brown fox, etc.), N=2 clozes ({{c1::The quick}} {{c2::brown fox}}, etc.)
 2. **Given** a sentence "one two three four five" (5 words), **When** system generates cloze cards, **Then** output includes N=1, N=2, and N=3 clozes with all arrangements for each size
 3. **Given** a sentence with 6 words, **When** system generates all clozes, **Then** system generates clozes for N=1, N=2, and N=3 (ceil(6/2)=3)
 
@@ -104,4 +104,4 @@ A user creates cloze deletions that include words with punctuation (commas, apos
 - **SC-003**: 100% of multi-word cloze generations preserve exact word order and spacing from the original sentence
 - **SC-004**: System correctly generates multiple output lines with different non-overlapping arrangements for each chunk size N
 - **SC-005**: System correctly handles sentences containing punctuation within N-word chunks without formatting errors
-- **SC-006**: Generated output uses valid Anki cloze format {{c1::text}} that can be imported directly into Anki without manual editing
+- **SC-006**: Generated output uses valid Anki cloze format {{cN::text}} (with incrementing N for multiple clozes) that can be imported directly into Anki without manual editing

@@ -54,12 +54,12 @@ echo "The quick brown fox" | anki-cloze
 
 **Line Format**:
 ```text
-{{c1::word1 word2...}} remaining {{c1::wordN wordM...}} text
+{{c1::word1 word2...}} remaining {{c2::wordN wordM...}} text
 ```
 
 **Specifications**:
 - Each line represents one flashcard/arrangement
-- Multiple clozes on same line use same number: `{{c1::...}}`
+- Multiple clozes on same line use incrementing numbers: `{{c1::...}}`, `{{c2::...}}`, etc.
 - Words within cloze separated by single space
 - Preserve original punctuation and spacing
 - No leading/trailing whitespace on lines
@@ -75,7 +75,7 @@ echo "The quick brown fox" | anki-cloze
 The {{c1::quick}} brown fox
 The quick {{c1::brown}} fox
 The quick brown {{c1::fox}}
-{{c1::The quick}} {{c1::brown fox}}
+{{c1::The quick}} {{c2::brown fox}}
 ```
 
 ### Standard Error (stderr)
@@ -109,7 +109,7 @@ $ anki-cloze "The quick brown fox"
 The {{c1::quick}} brown fox
 The quick {{c1::brown}} fox
 The quick brown {{c1::fox}}
-{{c1::The quick}} {{c1::brown fox}}
+{{c1::The quick}} {{c2::brown fox}}
 ```
 
 **Exit Code**: 0
@@ -121,7 +121,7 @@ $ echo "It's a well-known fact" | anki-cloze
 It's {{c1::a}} well-known fact
 It's a {{c1::well-known}} fact
 It's a well-known {{c1::fact}}
-{{c1::It's a}} {{c1::well-known fact}}
+{{c1::It's a}} {{c2::well-known fact}}
 ```
 
 **Exit Code**: 0
@@ -142,8 +142,8 @@ one {{c1::two}} three four five
 one two {{c1::three}} four five
 one two three {{c1::four}} five
 one two three four {{c1::five}}
-{{c1::one two}} {{c1::three four}} five
-one {{c1::two three}} {{c1::four five}}
+{{c1::one two}} {{c2::three four}} five
+one {{c1::two three}} {{c2::four five}}
 {{c1::one two three}} four five
 one {{c1::two three four}} five
 one two {{c1::three four five}}

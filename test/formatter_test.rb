@@ -21,7 +21,7 @@ class FormatterTest < Minitest::Test
     arrangement = AnkiCloze::Arrangement.new(sentence: sentence, chunks: chunks)
     
     result = AnkiCloze::Formatter.to_anki_format(arrangement)
-    assert_equal "{{c1::The quick}} {{c1::brown fox}}", result
+    assert_equal "{{c1::The quick}} {{c2::brown fox}}", result
   end
 
   def test_formats_with_gaps
@@ -33,7 +33,7 @@ class FormatterTest < Minitest::Test
     arrangement = AnkiCloze::Arrangement.new(sentence: sentence, chunks: chunks)
     
     result = AnkiCloze::Formatter.to_anki_format(arrangement)
-    assert_equal "{{c1::one two}} {{c1::three four}} five", result
+    assert_equal "{{c1::one two}} {{c2::three four}} five", result
   end
 
   def test_preserves_punctuation
@@ -45,6 +45,6 @@ class FormatterTest < Minitest::Test
     arrangement = AnkiCloze::Arrangement.new(sentence: sentence, chunks: chunks)
     
     result = AnkiCloze::Formatter.to_anki_format(arrangement)
-    assert_equal "{{c1::It's a}} {{c1::well-known fact}}", result
+    assert_equal "{{c1::It's a}} {{c2::well-known fact}}", result
   end
 end

@@ -7,6 +7,7 @@ module AnkiCloze
       sentence_words = arrangement.sentence.words.dup
       result_parts = []
       current_index = 0
+      cloze_number = 1
 
       arrangement.chunks.each do |chunk|
         # Add any words before this chunk
@@ -15,7 +16,8 @@ module AnkiCloze
         end
 
         # Add the cloze-formatted chunk
-        result_parts << "{{c1::#{chunk.to_s}}}"
+        result_parts << "{{c#{cloze_number}::#{chunk.to_s}}}"
+        cloze_number += 1
         current_index = chunk.end_index + 1
       end
 
