@@ -17,8 +17,8 @@ class IntegrationTest < Minitest::Test
     assert_includes result, "The quick {{c1::brown}} fox"
     assert_includes result, "The quick brown {{c1::fox}}"
     
-    # N=2 lines (1 total)
-    assert_includes result, "{{c1::The quick}} {{c1::brown fox}}"
+    # N=2 lines (1 total, with incrementing cloze numbers)
+    assert_includes result, "{{c1::The quick}} {{c2::brown fox}}"
   end
 
   # T038: Test multiple punctuation types
