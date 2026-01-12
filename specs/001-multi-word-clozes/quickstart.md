@@ -47,7 +47,7 @@ bin/anki-cloze < sentences.txt
 The {{c1::quick}} brown fox
 The quick {{c1::brown}} fox
 The quick brown {{c1::fox}}
-{{c1::The quick}} {{c1::brown fox}}
+{{c1::The quick}} {{c2::brown fox}}
 ```
 
 Each line is a separate flashcard. Import directly into Anki.
@@ -129,7 +129,7 @@ For a W-word sentence, the tool generates clozes for:
 
 ### Anki Format
 - `{{c1::text}}` - Anki cloze deletion syntax
-- Multiple `{{c1::...}}` on same line = grouped clozes (all hidden together)
+- Multiple clozes on same line use incrementing numbers: `{{c1::...}}`, `{{c2::...}}`, etc.
 - One line = one flashcard
 
 ---
