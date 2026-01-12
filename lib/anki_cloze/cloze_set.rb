@@ -36,10 +36,10 @@ module AnkiCloze
     # Handle N=1 case (single-word clozes)
     # @return [Array<Arrangement>] arrangements with single-word chunks
     def generate_n1_arrangements
-      @sentence.words.each_with_index.map do |word, index|
-        chunk = Chunk.new(start_index: index, size: 1, words: [word])
-        Arrangement.new(sentence: @sentence, chunks: [chunk])
+      chunks = @sentence.words.each_with_index.map do |word, index|
+        Chunk.new(start_index: index, size: 1, words: [word])
       end
+      [Arrangement.new(sentence: @sentence, chunks: chunks)]
     end
 
     # Handle N>=2 with non-overlapping logic

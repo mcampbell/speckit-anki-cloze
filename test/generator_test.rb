@@ -8,15 +8,12 @@ class GeneratorTest < Minitest::Test
     generator = AnkiCloze::Generator.new("The quick brown fox")
     result = generator.generate
 
-    # Should produce 4 cloze lines for N=1 (single cloze marker per line)
-    n1_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 1 }
-    assert_equal 4, n1_lines.count
+    # Should produce 1 line for N=1 with all 4 words as separate clozes
+    n1_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 4 }
+    assert_equal 1, n1_lines.count
 
-    # Verify each word gets cloze'd
-    assert_includes result, "{{c1::The}} quick brown fox"
-    assert_includes result, "The {{c1::quick}} brown fox"
-    assert_includes result, "The quick {{c1::brown}} fox"
-    assert_includes result, "The quick brown {{c1::fox}}"
+    # Verify all words are cloze'd on one line
+    assert_includes result, "{{c1::The}} {{c2::quick}} {{c3::brown}} {{c4::fox}}"
   end
 
   # T012: Contract test for two-word cloze generation (N=2)
@@ -53,11 +50,12 @@ class GeneratorTest < Minitest::Test
     result = generator.generate
     
     # max_chunk_size = ceil(3/2) = 2
-    # N=1: 3 lines, N=2: 2 lines (single-chunk arrangements at offsets 0 and 1)
-    assert_equal 5, result.length
+    # N=1: 1 line with 3 clozes, N=2: 2 lines (single-chunk arrangements at offsets 0 and 1)
+    assert_equal 3, result.length
     
-    n1_lines = result.select { |line| line.scan(/\{\{c1::/).count == 1 }
-    assert_equal 5, n1_lines.count # All are single-cloze lines
+    # Check N=1 line has 3 cloze markers
+    n1_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 3 }
+    assert_equal 1, n1_lines.count
   end
 
   # T026: Test 5-word sentence
@@ -65,17 +63,17 @@ class GeneratorTest < Minitest::Test
     generator = AnkiCloze::Generator.new("one two three four five")
     result = generator.generate
 
-    # N=1: 5 lines, N=2: 2 lines, N=3: 3 lines = 10 total
-    assert_equal 10, result.length
+    # N=1: 1 line with 5 clozes, N=2: 2 lines, N=3: 3 lines = 6 total
+    assert_equal 6, result.length
 
     # Count arrangements by number of cloze markers
-    single_cloze_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 1 }
+    five_cloze_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 5 }
     double_cloze_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 2 }
+    single_cloze_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 1 }
 
-    # For simplicity, just verify we have single-cloze lines (from N=1 and N=3)
-    # and multi-cloze lines (from N=2)
-    assert_operator single_cloze_lines.count, :>=, 5  # At least 5 from N=1, plus N=3 single-chunk
-    assert_equal 2, double_cloze_lines.count # Exactly 2 from N=2
+    assert_equal 1, five_cloze_lines.count # N=1 line
+    assert_equal 2, double_cloze_lines.count # N=2 has 2 arrangements
+    assert_equal 3, single_cloze_lines.count # N=3 has 3 arrangements (single-chunk each)
   end
 
   # T027: Test 6-word sentence max_chunk_size
@@ -100,10 +98,9 @@ class GeneratorTest < Minitest::Test
     result = generator.generate
     
     # max_chunk_size = ceil(2/2) = 1, so only N=1
-    # N=1: 2 lines
-    assert_equal 2, result.length
-    assert_includes result, "{{c1::hello}} world"
-    assert_includes result, "hello {{c1::world}}"
+    # N=1: 1 line with 2 clozes
+    assert_equal 1, result.length
+    assert_includes result, "{{c1::hello}} {{c2::world}}"
   end
 
   # T037: Test comma preservation
@@ -112,8 +109,7 @@ class GeneratorTest < Minitest::Test
     result = generator.generate
     
     # Verify comma stays within cloze chunk
-    assert_includes result, "{{c1::First,}} we analyze"
-    assert_includes result, "First, {{c1::we}} analyze"
+    assert_includes result, "{{c1::First,}} {{c2::we}} {{c3::analyze}}"
   end
 
   def test_minimum_chunk_size_filters_results
@@ -161,15 +157,10 @@ class GeneratorTest < Minitest::Test
     result = generator.generate
     
     # Should only include N=1, not N=2
-    # All results should have 1 cloze marker
-    result.each do |line|
-      assert_equal 1, line.scan(/\{\{c\d+::/).count
-    end
-    
-    # Should have 4 N=1 clozes
-    assert_equal 4, result.length
-    assert_includes result, "{{c1::one}} two three four"
-    assert_includes result, "one {{c1::two}} three four"
+    # Should have 1 line with 4 cloze markers
+    assert_equal 1, result.length
+    assert_equal 4, result.first.scan(/\{\{c\d+::/).count
+    assert_includes result, "{{c1::one}} {{c2::two}} {{c3::three}} {{c4::four}}"
   end
 
   def test_maximum_chunk_size_smaller_than_calculated_max
@@ -177,14 +168,12 @@ class GeneratorTest < Minitest::Test
     result = generator.generate
     
     # Calculated max would be 3, but user max is 2
-    # Should include N=1 and N=2 only
-    result.each do |line|
-      cloze_count = line.scan(/\{\{c\d+::/).count
-      assert_operator cloze_count, :<=, 3 # Max 3 chunks for N=2
-    end
+    # Should include N=1 (1 line with 6 clozes) and N=2 (2 lines)
+    assert_equal 3, result.length
     
-    # Should not be empty
-    assert_operator result.length, :>, 0
+    # Check we have one line with 6 clozes (N=1) and two lines with fewer (N=2)
+    six_cloze_lines = result.select { |line| line.scan(/\{\{c\d+::/).count == 6 }
+    assert_equal 1, six_cloze_lines.count
   end
 
   def test_maximum_chunk_size_larger_than_calculated_max
@@ -192,8 +181,8 @@ class GeneratorTest < Minitest::Test
     result = generator.generate
     
     # Calculated max is 2, user max is 10, so should use 2
-    # Should include N=1 and N=2
-    assert_equal 5, result.length # 3 for N=1, 2 for N=2
+    # Should include N=1 (1 line with 3 clozes) and N=2 (2 lines)
+    assert_equal 3, result.length
   end
 
   def test_minimum_and_maximum_together

@@ -8,14 +8,11 @@ class IntegrationTest < Minitest::Test
     generator = AnkiCloze::Generator.new("The quick brown fox")
     result = generator.generate
     
-    # Should produce 5 total lines: 4 for N=1 + 1 for N=2
-    assert_equal 5, result.length
+    # Should produce 2 total lines: 1 for N=1 + 1 for N=2
+    assert_equal 2, result.length
     
-    # N=1 lines (4 total)
-    assert_includes result, "{{c1::The}} quick brown fox"
-    assert_includes result, "The {{c1::quick}} brown fox"
-    assert_includes result, "The quick {{c1::brown}} fox"
-    assert_includes result, "The quick brown {{c1::fox}}"
+    # N=1 line (all 4 words as separate clozes)
+    assert_includes result, "{{c1::The}} {{c2::quick}} {{c3::brown}} {{c4::fox}}"
     
     # N=2 lines (1 total, with incrementing cloze numbers)
     assert_includes result, "{{c1::The quick}} {{c2::brown fox}}"
@@ -32,8 +29,9 @@ class IntegrationTest < Minitest::Test
     assert result.any? { |line| line.include?("fact,") }
     
     # Verify punctuation stays within cloze chunks
-    assert result.any? { |line| line.include?("{{c1::It's}}") || line.include?("{{c1::It's a}}") }
-    assert result.any? { |line| line.include?("{{c1::well-known}}") || line.include?("{{c1::well-known fact,}}") }
-    assert result.any? { |line| line.include?("{{c1::fact,}}") || line.include?("{{c1::fact, honestly}}") }
+    # For N=1, all words should be in one line
+    assert result.any? { |line| line.include?("{{c1::It's}}") && line.include?("{{c2::a}}") }
+    assert result.any? { |line| line.include?("{{c3::well-known}}") }
+    assert result.any? { |line| line.include?("{{c4::fact,}}") }
   end
 end
