@@ -3,6 +3,9 @@
 module AnkiCloze
   # Formats arrangements into Anki cloze deletion format
   class Formatter
+    # Converts an arrangement to Anki cloze deletion format
+    # @param arrangement [Arrangement] the arrangement to format
+    # @return [String] the formatted Anki cloze string with {{c1::text}} syntax
     def self.to_anki_format(arrangement)
       sentence_words = arrangement.sentence.words.dup
       result_parts = []

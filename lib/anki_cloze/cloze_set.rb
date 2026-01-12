@@ -3,15 +3,26 @@
 module AnkiCloze
   # Collection of all arrangements for a given sentence and chunk size
   class ClozeSet
-    attr_reader :sentence, :chunk_size, :arrangements
+    # @return [Sentence] the sentence being processed
+    attr_reader :sentence
+    
+    # @return [Integer] the size of chunks in this set
+    attr_reader :chunk_size
+    
+    # @return [Array<Arrangement>] the generated arrangements
+    attr_reader :arrangements
 
+    # Creates a new ClozeSet instance
+    # @param sentence [Sentence] the sentence to process
+    # @param chunk_size [Integer] the size of chunks to generate
     def initialize(sentence, chunk_size)
       @sentence = sentence
       @chunk_size = chunk_size
       @arrangements = []
     end
 
-    # T018-T019: Generate all non-overlapping arrangements for this chunk size
+    # Generate all non-overlapping arrangements for this chunk size
+    # @return [Array<Arrangement>] the generated arrangements
     def generate_arrangements
       @arrangements = if @chunk_size == 1
         generate_n1_arrangements
@@ -22,7 +33,8 @@ module AnkiCloze
 
     private
 
-    # T018: Handle N=1 case (single-word clozes)
+    # Handle N=1 case (single-word clozes)
+    # @return [Array<Arrangement>] arrangements with single-word chunks
     def generate_n1_arrangements
       @sentence.words.each_with_index.map do |word, index|
         chunk = Chunk.new(start_index: index, size: 1, words: [word])
@@ -30,7 +42,8 @@ module AnkiCloze
       end
     end
 
-    # T019/T030-T031: Handle N>=2 with non-overlapping logic
+    # Handle N>=2 with non-overlapping logic
+    # @return [Array<Arrangement>] arrangements with multi-word chunks
     def generate_general_arrangements
       arrangements = []
       word_count = @sentence.word_count
