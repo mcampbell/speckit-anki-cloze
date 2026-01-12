@@ -30,11 +30,8 @@ HELP_TEXT = <<~HELP
     anki-cloze < input.txt
 
   Output:
-    {{c1::The}} quick brown fox
-    The {{c1::quick}} brown fox
-    The quick {{c1::brown}} fox
-    The quick brown {{c1::fox}}
-    {{c1::The quick}} {{c1::brown fox}}
+    {{c1::The}} {{c2::quick}} {{c3::brown}} {{c4::fox}}
+    {{c1::The quick}} {{c2::brown fox}}
 
   Options:
 HELP
