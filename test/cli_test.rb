@@ -143,7 +143,7 @@ class CliTest < Minitest::Test
     assert_empty stderr
     
     # Should only include N=1, not N=2
-    assert_includes stdout, "{{c1::one}} two three four"
+    assert_includes stdout, "{{c1::one}} {{c2::two}} {{c3::three}} {{c4::four}}"
     refute_includes stdout, "{{c1::one two}} {{c2::three four}}"
   end
 
@@ -153,7 +153,7 @@ class CliTest < Minitest::Test
     assert_empty stderr
     
     # Should only include N=1, not N=2
-    assert_includes stdout, "{{c1::one}} two three four"
+    assert_includes stdout, "{{c1::one}} {{c2::two}} {{c3::three}} {{c4::four}}"
     refute_includes stdout, "{{c1::one two}} {{c2::three four}}"
   end
 
@@ -161,17 +161,11 @@ class CliTest < Minitest::Test
     stdout, stderr, status = Open3.capture3(@cli_path, "--maximum", "2", "a b c d e f")
     assert status.success?
     
-    # Should include N=1 and N=2, but not N=3
+    # Should include N=1 (1 line with 6 clozes) and N=2 (2 lines), but not N=3
     lines = stdout.split("\n").reject(&:empty?)
     
-    # Should have single-word clozes (N=1: 6 lines) and two-word arrangements (N=2: varies)
-    assert_operator lines.length, :>, 6
-    
-    # Verify no N=3 (which would have 2 cloze markers for 6 words)
-    lines.each do |line|
-      cloze_count = line.scan(/\{\{c\d+::/).count
-      assert_operator cloze_count, :<=, 3 # Max of 3 chunks for N=2 (offset 0: 3 chunks of 2)
-    end
+    # Should have 3 lines total
+    assert_equal 3, lines.length
   end
 
   def test_maximum_smaller_than_min_returns_nothing
@@ -197,7 +191,7 @@ class CliTest < Minitest::Test
     assert_empty stderr
     
     # Should only include N=1 clozes
-    assert_includes stdout, "{{c1::one}} two three four"
+    assert_includes stdout, "{{c1::one}} {{c2::two}} {{c3::three}} {{c4::four}}"
     refute_includes stdout, "{{c1::one two}} {{c2::three four}}"
   end
 

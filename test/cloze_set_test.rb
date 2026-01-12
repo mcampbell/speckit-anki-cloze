@@ -29,8 +29,9 @@ class ClozeSetTest < Minitest::Test
     cloze_set = AnkiCloze::ClozeSet.new(sentence, 1)
     cloze_set.generate_arrangements
     
-    # For N=1, should generate 4 arrangements (one per word)
-    assert_equal 4, cloze_set.arrangements.length
+    # For N=1, should generate 1 arrangement with 4 chunks
+    assert_equal 1, cloze_set.arrangements.length
+    assert_equal 4, cloze_set.arrangements.first.chunks.length
   end
 
   def test_generates_arrangements_for_n2

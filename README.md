@@ -11,10 +11,7 @@ variations with different chunk sizes. For example, given the sentence "The quic
 brown fox", it generates:
 
 - **Single-word clozes** (N=1):
-  - `{{c1::The}} quick brown fox`
-  - `The {{c1::quick}} brown fox`
-  - `The quick {{c1::brown}} fox`
-  - `The quick brown {{c1::fox}}`
+  - `{{c1::The}} {{c2::quick}} {{c3::brown}} {{c4::fox}}`
 
 - **Two-word clozes** (N=2):
   - `{{c1::The quick}} {{c2::brown fox}}`
@@ -122,9 +119,7 @@ anki-cloze "Learning is fun"
 
 Output:
 ```
-{{c1::Learning}} is fun
-Learning {{c1::is}} fun
-Learning is {{c1::fun}}
+{{c1::Learning}} {{c2::is}} {{c3::fun}}
 {{c1::Learning is}} fun
 Learning {{c1::is fun}}
 ```
@@ -150,9 +145,7 @@ anki-cloze -x 1 "Short and sweet"
 
 Output:
 ```
-{{c1::Short}} and sweet
-Short {{c1::and}} sweet
-Short and {{c1::sweet}}
+{{c1::Short}} {{c2::and}} {{c3::sweet}}
 ```
 
 ### Example 4: Processing Multiple Sentences
@@ -220,5 +213,5 @@ Apache License 2.0
 
 Michael Campbell <michael.campbell@gmail.com>
 
-Note that most of this was written with Claude Code's Sonnet 4.5 mode; this 
+Note that most of this was written with Claude Code's Sonnet 4.5 model; this 
 was mostly an experiment of using AI with GitHub [`spec-kit`](https://github.com/mcampbell/spec-kit).
