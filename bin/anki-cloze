@@ -9,10 +9,11 @@ require "anki_cloze/arrangement"
 require "anki_cloze/cloze_set"
 require "anki_cloze/formatter"
 require "anki_cloze/generator"
+require "optparse"
 
 # T023-T024: CLI implementation for multi-word cloze generation
 HELP_TEXT = <<~HELP
-  Usage: anki-cloze [SENTENCE]
+  Usage: anki-cloze [OPTIONS] [SENTENCE]
 
   Generate multi-word Anki cloze deletion flashcards from a sentence.
   Creates all possible N-word cloze deletions for N from 1 to ceil(word_count/2).
@@ -20,12 +21,12 @@ HELP_TEXT = <<~HELP
   Arguments:
     SENTENCE    Sentence to convert. If omitted, reads from stdin.
 
-  Options:
-    --help      Show this help message
-
   Examples:
     anki-cloze "The quick brown fox"
-    echo "Hello world" | anki-cloze
+    anki-cloze --minimum 3 "The quick brown fox"
+    anki-cloze --maximum 1 "The quick brown fox"
+    anki-cloze -m 2 -x 3 "The quick brown fox"
+    echo "Hello world" | anki-cloze -m 2
     anki-cloze < input.txt
 
   Output:
@@ -34,14 +35,41 @@ HELP_TEXT = <<~HELP
     The quick {{c1::brown}} fox
     The quick brown {{c1::fox}}
     {{c1::The quick}} {{c1::brown fox}}
+
+  Options:
 HELP
 
 begin
-  # Handle --help flag
-  if ARGV.include?("--help") || ARGV.include?("-h")
-    puts HELP_TEXT
-    exit 0
+  # Parse options
+  min_chunk_size = 1
+  max_chunk_size = nil
+  
+  parser = OptionParser.new do |opts|
+    opts.banner = HELP_TEXT
+    
+    opts.on("-m", "--minimum X", Integer, "Minimum chunk size to emit (must be >= 1)") do |m|
+      if m < 1
+        $stderr.puts "Error: --minimum value must be at least 1"
+        exit 1
+      end
+      min_chunk_size = m
+    end
+    
+    opts.on("-x", "--maximum X", Integer, "Maximum chunk size to emit (must be >= 1)") do |x|
+      if x < 1
+        $stderr.puts "Error: --maximum value must be at least 1"
+        exit 1
+      end
+      max_chunk_size = x
+    end
+    
+    opts.on("-h", "--help", "Show this help message") do
+      puts opts
+      exit 0
+    end
   end
+  
+  parser.parse!
 
   # T023: ARGV input takes precedence, fall back to stdin
   input = if ARGV.any?
@@ -59,7 +87,7 @@ begin
   end
 
   # Generate and output cloze deletions
-  generator = AnkiCloze::Generator.new(input)
+  generator = AnkiCloze::Generator.new(input, min_chunk_size: min_chunk_size, max_chunk_size: max_chunk_size)
   results = generator.generate
 
   results.each do |line|
@@ -67,6 +95,10 @@ begin
   end
 
   exit 0
+rescue OptionParser::InvalidArgument, OptionParser::InvalidOption => e
+  # Handle option parsing errors
+  $stderr.puts "Error: #{e.message}"
+  exit 1
 rescue ArgumentError => e
   # T024: Handle validation errors
   $stderr.puts "Error: #{e.message}"

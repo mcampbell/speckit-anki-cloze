@@ -115,4 +115,109 @@ class GeneratorTest < Minitest::Test
     assert_includes result, "{{c1::First,}} we analyze"
     assert_includes result, "First, {{c1::we}} analyze"
   end
+
+  def test_minimum_chunk_size_filters_results
+    generator = AnkiCloze::Generator.new("one two three four", min_chunk_size: 2)
+    result = generator.generate
+    
+    # Should only include N=2, not N=1
+    # All results should have 2 cloze markers
+    result.each do |line|
+      assert_equal 2, line.scan(/\{\{c\d+::/).count
+    end
+    
+    # Should have the N=2 arrangement
+    assert_includes result, "{{c1::one two}} {{c2::three four}}"
+  end
+
+  def test_minimum_chunk_size_larger_than_max_returns_empty
+    generator = AnkiCloze::Generator.new("one two three", min_chunk_size: 10)
+    result = generator.generate
+    
+    # Max chunk size is 2, minimum is 10, so no results
+    assert_empty result
+  end
+
+  def test_minimum_chunk_size_equal_to_max
+    generator = AnkiCloze::Generator.new("one two three", min_chunk_size: 2)
+    result = generator.generate
+    
+    # Should only include N=2
+    assert_equal 2, result.length
+    assert_includes result, "{{c1::one two}} three"
+    assert_includes result, "one {{c1::two three}}"
+  end
+
+  def test_default_minimum_chunk_size_is_one
+    generator1 = AnkiCloze::Generator.new("one two three")
+    generator2 = AnkiCloze::Generator.new("one two three", min_chunk_size: 1)
+    
+    # Both should produce identical results
+    assert_equal generator1.generate, generator2.generate
+  end
+
+  def test_maximum_chunk_size_filters_results
+    generator = AnkiCloze::Generator.new("one two three four", max_chunk_size: 1)
+    result = generator.generate
+    
+    # Should only include N=1, not N=2
+    # All results should have 1 cloze marker
+    result.each do |line|
+      assert_equal 1, line.scan(/\{\{c\d+::/).count
+    end
+    
+    # Should have 4 N=1 clozes
+    assert_equal 4, result.length
+    assert_includes result, "{{c1::one}} two three four"
+    assert_includes result, "one {{c1::two}} three four"
+  end
+
+  def test_maximum_chunk_size_smaller_than_calculated_max
+    generator = AnkiCloze::Generator.new("a b c d e f", max_chunk_size: 2)
+    result = generator.generate
+    
+    # Calculated max would be 3, but user max is 2
+    # Should include N=1 and N=2 only
+    result.each do |line|
+      cloze_count = line.scan(/\{\{c\d+::/).count
+      assert_operator cloze_count, :<=, 3 # Max 3 chunks for N=2
+    end
+    
+    # Should not be empty
+    assert_operator result.length, :>, 0
+  end
+
+  def test_maximum_chunk_size_larger_than_calculated_max
+    generator = AnkiCloze::Generator.new("one two three", max_chunk_size: 10)
+    result = generator.generate
+    
+    # Calculated max is 2, user max is 10, so should use 2
+    # Should include N=1 and N=2
+    assert_equal 5, result.length # 3 for N=1, 2 for N=2
+  end
+
+  def test_minimum_and_maximum_together
+    generator = AnkiCloze::Generator.new("one two three four", min_chunk_size: 2, max_chunk_size: 2)
+    result = generator.generate
+    
+    # Should only include N=2
+    assert_equal 1, result.length
+    assert_includes result, "{{c1::one two}} {{c2::three four}}"
+  end
+
+  def test_maximum_less_than_minimum_returns_empty
+    generator = AnkiCloze::Generator.new("one two three four", min_chunk_size: 3, max_chunk_size: 2)
+    result = generator.generate
+    
+    # Min > Max, should return empty
+    assert_empty result
+  end
+
+  def test_default_maximum_chunk_size_is_nil
+    generator1 = AnkiCloze::Generator.new("one two three")
+    generator2 = AnkiCloze::Generator.new("one two three", max_chunk_size: nil)
+    
+    # Both should produce identical results
+    assert_equal generator1.generate, generator2.generate
+  end
 end
